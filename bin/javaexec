@@ -1,25 +1,45 @@
 #!/usr/bin/env bash
-if [[ "${@---help}" =~ '--help' ]]; then
+set -e # exit immediately on error
+
+usage() {
   >&2 cat <<HELP
-Usage: $(basename "$0") groupId/artifactId version
-       $(basename "$0") artifactId version
+Usage: $(basename "$0") groupId/artifactId version [--] [arg ...]
+       $(basename "$0") artifactId version [--] [arg ...]
 
 Fetch the specified Java package, and all its dependencies, then extract the
 main class for that package, prepare the full classpath of dependencies, and
 run java.
 HELP
-  exit 1
-fi
+}
+
+vargs=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      vargs+=("$@")
+      break
+      ;;
+    *)
+      vargs+=("$1")
+      ;;
+  esac
+  shift
+done
 
 # split the first argument into groupId and artifactId variables, splitting on slashes
-IFS='/' read -r groupId artifactId <<< "$1"
+IFS='/' read -r groupId artifactId <<< "${vargs[0]}"
 # if no slash is supplied, the whole first argument will go into groupId, and artifactId will be empty
 if [[ -z "$artifactId" ]]; then
   # in which case, set artifactId to the same thing as groupId
   artifactId=$groupId
 fi
-version=$2
-args=("${@:3}")
+version=${vargs[1]}
+args=("${vargs[@]:2}")
 
 >&2 printf 'Executing artifact: %s/%s %s with args: %s\n' "$groupId" "$artifactId" "$version" "${args[*]}"
 
