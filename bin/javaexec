@@ -15,6 +15,10 @@ HELP
 vargs=()
 while [[ $# -gt 0 ]]; do
   case $1 in
+    -v|--verbose)
+      >&2 printf 'Entering debug (verbose) mode.\n'
+      set -x
+      ;;
     -h|--help)
       usage
       exit 0
