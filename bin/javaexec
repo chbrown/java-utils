@@ -12,6 +12,7 @@ run java.
 HELP
 }
 
+java_opts=()
 vargs=()
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -22,6 +23,9 @@ while [[ $# -gt 0 ]]; do
     -h|--help)
       usage
       exit 0
+      ;;
+    -X*)
+      java_opts+=("$1")
       ;;
     --)
       shift
@@ -61,4 +65,4 @@ if [[ -z "$mainClass" ]]; then
 fi
 >&2 printf 'Executing (main) class %s\n' "$mainClass"
 classPath=$(mvn -f "${jar/%jar/pom}" dependency:build-classpath | grep -v INFO)
-java -cp "$classPath:$jar" "$mainClass" "${args[@]}"
+java "${java_opts[@]}" -cp "$classPath:$jar" "$mainClass" "${args[@]}"
